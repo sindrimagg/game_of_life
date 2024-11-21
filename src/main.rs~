@@ -1,0 +1,89 @@
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::thread::sleep;
+use std::time::Duration;
+use std::vec::Vec;
+
+fn main() {
+    let mut alive = HashSet::new();
+    
+    alive.insert((4, 5));
+    alive.insert((4, 4));
+    alive.insert((4, 3));
+    alive.insert((3, 4));
+    //    alive.insert((6, 5));
+    //    alive.insert((6, 6));
+    //    alive.insert((5, 6));
+
+    let mut pos_change = HashSet::new();
+    for (a, b) in &alive {
+        for i in -1..=1 {
+            for j in -1..=1 {
+                pos_change.insert((a + i, b + j));
+            }
+        }
+    }
+
+    loop {
+        print_world(9, &alive);
+        sleep(Duration::from_millis(500));
+        let mut cnt = HashMap::new();
+        for (a, b) in &pos_change {
+            if alive.contains(&(*a, *b)) {
+                for i in -1..=1 {
+                    for j in -1..=1 {
+                        match cnt.get(&(a + i, b + j)) {
+                            Some(count) => {
+                                cnt.insert((a + i, b + j), count + 1);
+                            }
+                            None => {
+                                cnt.insert((a + i, b + j), 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (a, b) in &pos_change {
+            if alive.contains(&(*a, *b)) {
+                if cnt[&(*a, *b)] < 3 || cnt[&(*a, *b)] > 4 {
+                    alive.remove(&(*a, *b));
+                }
+            } else {
+                if cnt[&(*a, *b)] == 3 {
+                    alive.insert((*a, *b));
+                }
+            }
+        }
+
+        let mut pos = HashSet::new();
+        for (a, b) in &alive {
+            for i in -1..=1 {
+                for j in -1..=1 {
+                    pos.insert((a + i, b + j));
+                }
+            }
+        }
+
+        pos_change = pos;
+    }
+}
+
+fn print_world(n: isize, world: &HashSet<(isize, isize)>) {
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+    let row_sep: String = "-+".repeat((n-1).try_into().unwrap());
+    let alive = "█";
+    for i in 0isize..n {
+        println!("|{row_sep}-|");
+        for j in 0isize..n {
+            if world.contains(&(i, j)) {
+                print!("|{alive}");
+            } else {
+                print!("| ");
+            }
+        }
+        println!("|");
+    }
+    println!("{row_sep}+");
+}
